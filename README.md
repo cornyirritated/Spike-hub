@@ -101,3 +101,77 @@ RunService.PreSimulation:Connect(function()
 end)
    end,
   })
+
+local Section = Tab:CreateSection("Auto Spam")
+
+local Toggle = Tab:CreateToggle({
+   Name = "Auto Spam",
+   CurrentValue = false,
+   Flag = "getgenv().Auto Spam = false", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+   -- The function that takes place when the toggle is pressed
+   -- The variable (Value) is a boolean on whether the toggle is true or false
+   end,
+})
+
+--// Services
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Workspace = game:GetService("Workspace")
+
+--// Player
+local Player = Players.LocalPlayer
+
+--// Settings
+local AutoSpamEnabled = true
+local ClicksPerFrame = 3
+local SpamETA = 0.8 -- When to start spamming
+
+--// Utility
+local function Click()
+	VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+	VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+end
+
+--// Get Ball Function
+local function GetBall()
+	for _, Ball in ipairs(Workspace.Balls:GetChildren()) do
+		if Ball:GetAttribute("realBall") then
+			return Ball
+		end
+	end
+end
+
+--// Auto Spam Loop (runs super fast)
+spawn(function()
+	while wait(0) do -- wait(0) for fastest possible loop
+		local Ball = GetBall()
+		local HRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+		if Ball and HRP and AutoSpamEnabled then
+			local Zoomies = Ball:FindFirstChild("zoomies")
+			local Speed = Zoomies and Zoomies:FindFirstChild("VectorVelocity") and Zoomies.VectorVelocity.Magnitude or 75
+
+			local Distance = (HRP.Position - Ball.Position).Magnitude
+			local ETA = Distance / Speed
+			local Target = Ball:GetAttribute("target")
+
+			if Target == Player.Name and ETA <= SpamETA then
+				for _ = 1, ClicksPerFrame do
+					Click()
+				end
+				print("[JEFF] Auto Spam triggered")
+			end
+		end
+	end
+end)
+
+local Toggle = Tab:CreateToggle({
+   Name = "Auto Spam (manual)",
+   CurrentValue = false,
+   Flag = "Auto Spam (manual) = false", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+   -- The function that takes place when the toggle is pressed
+   -- The variable (Value) is a boolean on whether the toggle is true or false
+   end,
+})
