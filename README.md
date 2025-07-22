@@ -109,61 +109,70 @@ local Toggle = Tab:CreateToggle({
    CurrentValue = false,
    Flag = "getgenv().Auto Spam = false", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
    Callback = function(Value)
-   -- The function that takes place when the toggle is pressed
-   -- The variable (Value) is a boolean on whether the toggle is true or false
-   end,
+
 })
 
---// Services
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
+-- Improved Manual Spam GUI for Blade Ball (Mobile-Friendly Draggable, Dark Black Style)
+
+local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
-local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
 
---// Player
-local Player = Players.LocalPlayer
+-- Create the GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ManualSpamGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.Parent = game.CoreGui
 
---// Settings
-local AutoSpamEnabled = true
-local ClicksPerFrame = 3
-local SpamETA = 0.8 -- When to start spamming
+-- Main Frame
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 200, 0, 60)
+Frame.Position = UDim2.new(0.05, 0, 0.1, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
 
---// Utility
-local function Click()
-	VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-	VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = Frame
+
+-- Title / Button
+local TextButton = Instance.new("TextButton")
+TextButton.Size = UDim2.new(1, -20, 1, -20)
+TextButton.Position = UDim2.new(0, 10, 0, 10)
+TextButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TextButton.Text = "Manual Spam: OFF"
+TextButton.Font = Enum.Font.GothamBold
+TextButton.TextSize = 18
+TextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextButton.AutoButtonColor = false
+TextButton.Parent = Frame
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 6)
+ButtonCorner.Parent = TextButton
+
+-- Click spamming logic
+local spamming = false
+
+local function spamClick()
+    while spamming do
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+        task.wait(0) -- Adjust speed here if needed
+    end
 end
 
---// Get Ball Function
-local function GetBall()
-	for _, Ball in ipairs(Workspace.Balls:GetChildren()) do
-		if Ball:GetAttribute("realBall") then
-			return Ball
-		end
-	end
-end
+TextButton.MouseButton1Click:Connect(function()
+    spamming = not spamming
+    TextButton.Text = spamming and "Manual Spam: ON" or "Manual Spam: OFF"
 
---// Auto Spam Loop (runs super fast)
-spawn(function()
-	while wait(0) do -- wait(0) for fastest possible loop
-		local Ball = GetBall()
-		local HRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-		if Ball and HRP and AutoSpamEnabled then
-			local Zoomies = Ball:FindFirstChild("zoomies")
-			local Speed = Zoomies and Zoomies:FindFirstChild("VectorVelocity") and Zoomies.VectorVelocity.Magnitude or 75
-
-			local Distance = (HRP.Position - Ball.Position).Magnitude
-			local ETA = Distance / Speed
-			local Target = Ball:GetAttribute("target")
-
-			if Target == Player.Name and ETA <= SpamETA then
-				for _ = 1, ClicksPerFrame do
-					Click()
-				end
-				print("[JEFF] Auto Spam triggered")
-			end
-		end
-	end
+    if spamming then
+        task.spawn(spamClick)
+    end
 end)
 
 local Toggle = Tab:CreateToggle({
